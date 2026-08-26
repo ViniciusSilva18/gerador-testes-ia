@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-PT"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VibeTest — Gerador de Testes IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;background:#090d16;color:#f1f5f9;min-height:100vh;padding:24px}
+.header{text-align:center;padding:32px 0 24px}
+h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,#10b981,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{font-size:14px;color:#64748b;margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px;margin:0 auto}
+.panel{background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;display:flex;flex-direction:column}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.panel-title{font-size:14px;font-weight:700;color:#94a3b8}
+.selects{display:flex;gap:8px}
+select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 10px;color:#f1f5f9;font-size:13px;outline:none}
+textarea{flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;color:#f1f5f9;font-family:'Fira Code',monospace;font-size:13px;resize:none;outline:none;min-height:400px;line-height:1.6}
+textarea:focus{border-color:#10b981}
+.generate-btn{width:100%;margin-top:14px;padding:14px;background:linear-gradient(135deg,#10b981,#06b6d4);border:none;border-radius:12px;color:white;font-size:15px;font-weight:700;cursor:pointer;transition:transform .2s;grid-column:span 2}
+.generate-btn:hover{transform:translateY(-2px)}.generate-btn:disabled{opacity:.5;cursor:not-allowed}
+.stats{font-size:12px;color:#64748b;margin-top:8px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.generate-btn{grid-column:1}}
+</style></head>
+<body>
+<div class="header"><h1>🧪 VibeTest</h1><p class="sub">Cole o seu código e a IA gera os testes unitários automaticamente</p></div>
+<div class="grid">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">📝 Código fonte</span>
+      <div class="selects">
+        <select id="lang"><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+        <select id="framework"><option value="jest">Jest</option><option value="vitest">Vitest</option><option value="mocha">Mocha</option><option value="pytest">Pytest</option></select>
+      </div>
+    </div>
+    <textarea id="code" placeholder="// Cole aqui a função ou classe que deseja testar...
+function soma(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new TypeError('Argumentos devem ser números');
+  }
+  return a + b;
+}
+module.exports = { soma };"></textarea>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">✅ Testes gerados</span><span class="stats" id="stats"></span></div>
+    <textarea id="tests" placeholder="// Os testes gerados pela IA aparecerão aqui..." readonly></textarea>
+  </div>
+  <button class="generate-btn" id="btn" onclick="gerar()">🤖 Gerar Testes com IA →</button>
+</div>
+<script>
+async function gerar(){
+  const code = document.getElementById('code').value.trim();
+  if(!code){alert('Cole o código a testar!');return;}
+  const btn = document.getElementById('btn');
+  btn.disabled=true;btn.textContent='🤖 A gerar testes...';
+  try{
+    const res = await fetch('/api/generate-tests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,language:document.getElementById('lang').value,framework:document.getElementById('framework').value})});
+    const d = await res.json();
+    if(d.error){alert(d.error);return;}
+    document.getElementById('tests').value=d.tests;
+    document.getElementById('stats').textContent=`${d.linesGenerated} linhas geradas`;
+  }catch(e){alert('Erro: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='🤖 Gerar Testes com IA →';}
+}
+</script></body></html>
